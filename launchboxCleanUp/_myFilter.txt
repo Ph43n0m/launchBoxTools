@@ -1,0 +1,1 @@
+ -favouriteRomFilter:"german,germany,g,ge,ger,de,deu,europe,e,world,[!],[f],u,north america,usa,united states,rev 3,rev 2,rev 1,rev c,rev b,rev a,[rev 3],[rev 2],[rev 1],[rev c],[rev b],[rev a]" -excludeRomFilters:"[a],[a1],[a2],[b],[h],[o],[t],[!p],alpha,beta,Prototype,promo,Pre-Release,Kiosk Demo,Hack,Menu,old,Debug,Debug Version"
