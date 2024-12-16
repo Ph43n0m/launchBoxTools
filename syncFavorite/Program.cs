@@ -29,9 +29,10 @@ namespace syncFavorite
 
                         Set_local_variables_from_args();
 
-
                         if (isValidLaunchBoxPath())
                         {
+                            Console.WriteLine("Start transfer...");
+
                             iniHandler = new IniFileHandler(Path.Combine(appPath, Const.INI_FILE_NAME));
                             iniHandler.DeleteSection(Const.INI_SECTION_STATS);
 
@@ -42,7 +43,10 @@ namespace syncFavorite
                             if (copy)
                                 Copy_GameEntries_To_Target();
 
-                            String a = "";
+                            Console.WriteLine("Finish transfer...");
+                        } else
+                        {
+                            Console.WriteLine("Invalid LaunchBox Path.");
                         }
                     }
                 }
@@ -59,53 +63,58 @@ namespace syncFavorite
 
             foreach (var target in platformTargets)
             {
-                if (Directory.Exists(target.Value))
+                string[] multiTarget = target.Value.Split(';');
+
+                foreach (string mTarget in multiTarget)
                 {
-                    string[] targetFiles = Directory.GetFiles(target.Value).Where(name => !name.EndsWith(".xml") && !name.EndsWith(".txt")).ToArray();
-                    List<GameEntry> favEntries = platformFileHandler.GetGamesByPlatform(target.Key);
-
-                    if (favEntries.Count > 0)
+                    if (Directory.Exists(mTarget))
                     {
-                        foreach (GameEntry game in favEntries)
-                        {
-                            string targetPath = Path.Combine(target.Value, Path.GetFileName(game.Path));
-                            if (!File.Exists(targetPath))
-                            {
-                                Console.WriteLine(string.Format("Copy game \"{0}\" to target: \"{1}\"", game.Name, targetPath));
-                                File.Copy(game.Path, targetPath);
-                            }
-                        }
+                        string[] targetFiles = Directory.GetFiles(mTarget).Where(name => !name.EndsWith(".xml") && !name.EndsWith(".txt")).ToArray();
+                        List<GameEntry> favEntries = platformFileHandler.GetGamesByPlatform(target.Key);
 
-                        if (delete)
+                        if (favEntries.Count > 0)
                         {
-                            foreach (string tf in targetFiles)
+                            foreach (GameEntry game in favEntries)
                             {
-                                if (null == favEntries.FirstOrDefault(o => Path.GetFileName(o.Path).ToLower().Equals(Path.GetFileName(tf).ToLower())))
+                                string targetPath = Path.Combine(mTarget, Path.GetFileName(game.Path));
+                                if (!File.Exists(targetPath))
                                 {
-                                    Console.WriteLine(string.Format("Deleting file \"{0}\"", tf));
-                                    File.Delete(tf);
+                                    Console.WriteLine(string.Format("Copy game \"{0}\" to target: \"{1}\"", game.Name, targetPath));
+                                    File.Copy(game.Path, targetPath);
+                                }
+                            }
 
+                            if (delete)
+                            {
+                                foreach (string tf in targetFiles)
+                                {
+                                    if (null == favEntries.FirstOrDefault(o => Path.GetFileName(o.Path).ToLower().Equals(Path.GetFileName(tf).ToLower())))
+                                    {
+                                        Console.WriteLine(string.Format("Deleting file \"{0}\"", tf));
+                                        File.Delete(tf);
+
+                                    }
                                 }
                             }
                         }
+                        else
+                        {
+                            if (delete)
+                            {
+                                foreach (string tf in targetFiles)
+                                {
+                                    Console.WriteLine(string.Format("Deleting file \"{0}\"", tf));
+                                    File.Delete(tf);
+                                }
+                            }
+                        }
+
+
                     }
                     else
                     {
-                        if (delete)
-                        {
-                            foreach (string tf in targetFiles)
-                            {
-                                Console.WriteLine(string.Format("Deleting file \"{0}\"", tf));
-                                File.Delete(tf);
-                            }
-                        }
+                        Console.WriteLine(string.Format("Target path \"{0}\" for \"{1}\" does not exists.", target.Key, mTarget));
                     }
-
-
-                }
-                else
-                {
-                    Console.WriteLine(string.Format("Target path \"{0}\" for \"{1}\" does not exists.", target.Key, target.Value));
                 }
             }
         }
