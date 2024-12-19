@@ -41,10 +41,11 @@ namespace syncFavorite
                             Update_Platform_Section();
 
                             if (copy)
-                                Copy_GameEntries_To_Target();
+                                Copy_GameEntries_to_target();
 
                             Console.WriteLine("Finish transfer...");
-                        } else
+                        }
+                        else
                         {
                             Console.WriteLine("Invalid LaunchBox Path.");
                         }
@@ -57,7 +58,33 @@ namespace syncFavorite
             }
         }
 
-        private static void Copy_GameEntries_To_Target()
+        private static List<string> Get_clean_file_without_ignored_fileytypes(string[] files)
+        {
+            List<string> ret = new List<string>();
+
+            if (null != files && files.Length > 0)
+            {
+                foreach (string file in files)
+                {
+                    bool ignore = false;
+
+                    foreach (string ignoreFileType in Const.IGNORE_FILE_TYPES)
+                    {
+                        ignore = Path.GetExtension(file).ToLower().Contains(ignoreFileType.ToLower());
+
+                        if (ignore)
+                            break;
+                    }
+
+                    if (!ignore)
+                        ret.Add(file);
+                }
+            }
+
+            return ret;
+        }
+
+        private static void Copy_GameEntries_to_target()
         {
             Dictionary<string, string> platformTargets = iniHandler.GetAllValues(Const.INI_SECTION_PLATFORMS);
 
@@ -69,7 +96,9 @@ namespace syncFavorite
                 {
                     if (Directory.Exists(mTarget))
                     {
-                        string[] targetFiles = Directory.GetFiles(mTarget).Where(name => !name.EndsWith(".xml") && !name.EndsWith(".txt")).ToArray();
+
+
+                        List<string> targetFiles = Get_clean_file_without_ignored_fileytypes(Directory.GetFiles(mTarget).Where(name => !Const.IGNORE_FILE_TYPES.Contains(Path.GetExtension(name).ToLower())).ToArray());
                         List<GameEntry> favEntries = platformFileHandler.GetGamesByPlatform(target.Key);
 
                         if (favEntries.Count > 0)
